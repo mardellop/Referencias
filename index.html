@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referencias APA 7</title>
+    <link rel="icon" type="image/png" href="https://github.com/ReyesDelgado/AppSTYLIA/blob/main/Referencias.ico?raw=true">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+                <span>Generador Referencias APA 7</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Source Input Section -->
+            <section class="input-section">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="url">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                        </svg>
+                        Pegar URL
+                    </button>
+                    <button class="tab-btn" data-tab="pdf">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                        </svg>
+                        Subir PDF
+                    </button>
+                </div>
+
+                <div id="urlTab" class="tab-content transition-fade">
+
+                <form id="urlForm" class="url-form">
+                    <div class="url-input-wrapper">
+                        <input type="url" id="urlInput" class="url-input" placeholder="https://ejemplo.com/articulo"
+                            required>
+                        <button type="submit" class="btn-generate" id="generateBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            <span>Generar Referencia</span>
+                        </button>
+                    </div>
+                    </form>
+                </div>
+
+                <div id="pdfTab" class="tab-content hidden transition-fade">
+                    
+                    <div id="pdfDropzone" class="pdf-dropzone">
+                        <input type="file" id="pdfInput" accept=".pdf" class="hidden">
+                        <div class="dropzone-content">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                            <p><strong>Haz clic para subir</strong> o arrastra y suelta</p>
+                        </div>
+                        <div id="pdfFileDetails" class="file-details hidden">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                            </svg>
+                            <span id="pdfFileName">archivo.pdf</span>
+                            <button class="btn-icon-sm" id="removePdfBtn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="pdf-actions">
+                        <button type="button" class="btn-primary" id="extractPdfBtn" disabled>
+                            Generar Referencia
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="loading-state hidden">
+                    <div class="spinner"></div>
+                    <p>Extrayendo metadatos...</p>
+                </div>
+
+                <!-- Error State -->
+                <div id="errorState" class="error-state hidden">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <p id="errorMessage">Error al extraer metadatos</p>
+                    <button class="btn-secondary" id="manualEditBtn">Editar manualmente</button>
+                </div>
+            </section>
+
+            <!-- Metadata Preview Section -->
+            <section id="metadataPreview" class="metadata-preview hidden">
+                <div class="preview-header">
+                    <h3>Metadatos Extraídos</h3>
+                    <button class="btn-icon" id="editMetadataBtn" title="Editar metadatos">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div id="metadataDisplay" class="metadata-display">
+                    <!-- Metadata will be inserted here -->
+                </div>
+
+                <div class="preview-actions">
+                    <button class="btn-secondary" id="cancelBtn">Cancelar</button>
+                    <button class="btn-secondary" id="modifyBtn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                        Modificar referencia
+                    </button>
+                    <button class="btn-primary" id="confirmBtn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Confirmar y Generar
+                    </button>
+                </div>
+            </section>
+
+            <!-- Manual Edit Form -->
+            <section id="manualEditForm" class="manual-edit-form hidden">
+                <h3>Editar Metadatos</h3>
+                <div id="editFormFields">
+                    <!-- Form fields will be inserted dynamically -->
+                </div>
+                <div class="form-actions">
+                    <button class="btn-secondary" id="cancelEditBtn">Cancelar</button>
+                    <button class="btn-primary" id="saveEditBtn">Guardar y Generar</button>
+                </div>
+            </section>
+
+            <!-- Citation Output -->
+            <section class="citation-section">
+                <div class="section-header">
+                    <h2>Referencia Generada</h2>
+                    <button class="btn-icon" id="copyBtn" title="Copiar cita">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div id="citationOutput" class="citation-output">
+                    <div class="empty-state">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <polyline points="10 9 9 9 8 9" />
+                        </svg>
+                        <p>Pega un enlace o sube un archivo PDF para generar la referencia en estilo APA 7</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Citation History -->
+            <section class="history-section">
+                <div class="section-header">
+                    <h2>Historial de Referencias</h2>
+                    <button class="btn-text" id="clearHistoryBtn">Limpiar historial</button>
+                </div>
+
+                <div class="history-controls" id="historyControls">
+                    <button class="btn-secondary btn-sm" id="copyAllBtn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </svg>
+                        Copiar todas (A-Z)
+                    </button>
+                    <button class="btn-secondary btn-sm" id="selectionModeBtn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                        </svg>
+                        Seleccionar
+                    </button>
+                    <button class="btn-primary btn-sm hidden" id="copySelectedBtn">
+                        Copiar seleccionadas (A-Z)
+                    </button>
+                </div>
+
+                <div id="historyList" class="history-list">
+                    <div class="empty-state">
+                        <p>No hay citas guardadas aún</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Generador de Referencias • Basado en la 7ª edición de APA</p>
+        </footer>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <p id="toastMessage"></p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="metadata-extractor.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
