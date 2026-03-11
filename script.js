@@ -29,6 +29,14 @@ const removePdfBtn = document.getElementById('removePdfBtn');
 const extractPdfBtn = document.getElementById('extractPdfBtn');
 const dropzoneContent = pdfDropzone.querySelector('.dropzone-content');
 
+// Bulk Elements
+const bulkUrlInput = document.getElementById('bulkUrlInput');
+const processBulkBtn = document.getElementById('processBulkBtn');
+const bulkProgress = document.getElementById('bulkProgress');
+const bulkProgressBar = document.getElementById('bulkProgressBar');
+const bulkStatusText = document.getElementById('bulkStatusText');
+const bulkCountText = document.getElementById('bulkCountText');
+
 const metadataPreview = document.getElementById('metadataPreview');
 const metadataDisplay = document.getElementById('metadataDisplay');
 const editMetadataBtn = document.getElementById('editMetadataBtn');
@@ -105,6 +113,9 @@ function setupEventListeners() {
     });
 
     pdfDropzone.addEventListener('drop', handleDrop, false);
+
+    // Bulk events
+    processBulkBtn.addEventListener('click', handleBulkProcess);
 }
 
 function preventDefaults(e) {
@@ -207,6 +218,64 @@ async function handleURLSubmit(e) {
     }
 }
 
+// Handle Bulk URL / Reference Sorting (Strict Alphabetical Sorter)
+async function handleBulkProcess() {
+    const content = bulkUrlInput.value.trim();
+    if (!content) {
+        showToast('Por favor pega tus enlaces o referencias', 'error');
+        return;
+    }
+
+    // Split by lines, keep original text
+    const lines = content.split('\n')
+        .map(line => line.trim())
+        .filter(line => line !== '');
+
+    if (lines.length === 0) return;
+
+    // Strict Alphabetical Sort (A-Z)
+    const sortedLines = [...lines].sort((a, b) => {
+        return a.localeCompare(b, undefined, { sensitivity: 'base' });
+    });
+
+    displayBulkResults(sortedLines);
+    showToast(`¡Lista ordenada (${sortedLines.length} elementos)!`, 'success');
+}
+
+function displayBulkResults(lines) {
+    const html = lines.map(line => {
+        // Just text, no formatting to avoid "inventing" anything
+        return `<div class="citation-text" style="margin-bottom: 0.8rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); word-break: break-all; font-family: monospace; font-size: 0.85rem;">${line}</div>`;
+    }).join('');
+
+    const plainTextList = lines.join('\n');
+
+    citationOutput.innerHTML = `
+        <div class="bulk-results-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--primary);">
+            <span style="color: var(--primary); font-weight: 700;">
+                 Detección: ${lines.length} elementos ordenados (A-Z)
+            </span>
+            <button class="btn-primary btn-sm" id="copyBulkBtn">
+                Copiar Lista Exacta
+            </button>
+        </div>
+        <div class="bulk-sorted-list" style="max-height: 400px; overflow-y: auto; padding: 1rem; background: #f8fafc; border-radius: 8px;">
+            ${html}
+        </div>
+    `;
+    
+    document.getElementById('copyBulkBtn').addEventListener('click', () => {
+        // Copy the raw join with single newlines as pasted
+        navigator.clipboard.writeText(plainTextList).then(() => {
+            showToast('¡Lista copiada al portapapeles!', 'success');
+        }).catch(() => {
+            showToast('Error al copiar', 'error');
+        });
+    });
+    
+    citationOutput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 // Display Metadata Preview
 function displayMetadataPreview(metadata) {
     const items = [];
@@ -217,45 +286,35 @@ function displayMetadataPreview(metadata) {
         'youtube': 'Video (YouTube)',
         'video': 'Video',
         'journal': 'Artículo de Revista',
-        'book': 'Libro',
-        'doi': 'Artículo Académico'
+        'article': 'Artículo de Investigación',
+        'book': 'Libro / Monografía',
+        'doi': 'Publicación Académica',
+        'thesis': 'Tesis / Trabajo Académico',
+        'report': 'Informe Técnico'
     };
-    items.push({ label: 'Tipo', value: typeLabels[metadata.type] || metadata.type });
+    items.push({ label: 'Tipo', value: typeLabels[metadata.type] || 'Documento Técnico' });
 
     // Author
-    if (metadata.author) {
-        items.push({ label: 'Autor(es)', value: metadata.author });
-    }
+    items.push({ label: 'Autor(es)', value: metadata.author || 'Pendiente de identificar' });
 
     // Date
-    if (metadata.date) {
-        const dateStr = formatDateDisplay(metadata.date);
-        items.push({ label: 'Fecha', value: dateStr });
-    }
+    items.push({ label: 'Año', value: formatDateDisplay(metadata.date) || 'No especificado' });
 
     // Title
-    if (metadata.title) {
-        items.push({ label: 'Título', value: metadata.title });
-    }
+    items.push({ label: 'Título', value: metadata.title || 'Sin título' });
 
-    // Type-specific fields
-    if (metadata.type === 'website' && metadata.siteName) {
+    // Journal/Source Information
+    if (metadata.journalName) {
+        items.push({ label: 'Revista', value: metadata.journalName });
+    } else if (metadata.siteName) {
         items.push({ label: 'Nombre del sitio', value: metadata.siteName });
+    } else if (metadata.publisher) {
+        items.push({ label: 'Editorial/Fuente', value: metadata.publisher });
     }
 
-    if (metadata.type === 'video' && metadata.platform) {
-        items.push({ label: 'Plataforma', value: metadata.platform });
-    }
-
-    if (metadata.type === 'journal') {
-        if (metadata.journalName) items.push({ label: 'Revista', value: metadata.journalName });
-        if (metadata.volume) items.push({ label: 'Volumen', value: metadata.volume });
-        if (metadata.issue) items.push({ label: 'Número', value: metadata.issue });
-        if (metadata.pages) items.push({ label: 'Páginas', value: metadata.pages });
-    }
-
-    if (metadata.type === 'book' && metadata.publisher) {
-        items.push({ label: 'Editorial', value: metadata.publisher });
+    // Pages
+    if (metadata.pages) {
+        items.push({ label: 'Páginas', value: metadata.pages });
     }
 
     // DOI
@@ -263,8 +322,10 @@ function displayMetadataPreview(metadata) {
         items.push({ label: 'DOI', value: metadata.doi });
     }
 
-    // URL
-    items.push({ label: 'URL', value: metadata.url });
+    // URL (only if not empty)
+    if (metadata.url) {
+        items.push({ label: 'URL', value: metadata.url });
+    }
 
     // Build HTML
     metadataDisplay.innerHTML = items.map(item => `
@@ -611,9 +672,13 @@ function formatDate(date) {
 }
 
 // Convert to Sentence Case
+// Convert to Sentence Case (APA 7: only first word capitalized)
 function toSentenceCase(str) {
     if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1);
+    // If it's mostly uppercase, lowercase it first
+    const isMostlyUpper = str.length > 5 && (str.match(/[A-Z]/g) || []).length / str.length > 0.7;
+    const text = isMostlyUpper ? str.toLowerCase() : str;
+    return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 // Display Citation
@@ -644,21 +709,24 @@ function copyCitation() {
 }
 
 // History Management
-function addToHistory(citation) {
+function addToHistory(citation, type = null, shouldRender = true) {
     const historyItem = {
         citation: citation,
         timestamp: new Date().toISOString(),
-        type: currentMetadata?.type || 'website'
+        type: type || currentMetadata?.type || 'website'
     };
 
     citationHistory.unshift(historyItem);
 
-    if (citationHistory.length > 10) {
-        citationHistory = citationHistory.slice(0, 10);
+    // Limit history, but allow enough for batch processing
+    if (citationHistory.length > 50) {
+        citationHistory = citationHistory.slice(0, 50);
     }
 
     saveHistory();
-    renderHistory();
+    if (shouldRender) {
+        renderHistory();
+    }
 }
 
 function loadHistory() {
